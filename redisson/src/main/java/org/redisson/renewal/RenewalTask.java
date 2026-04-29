@@ -95,29 +95,32 @@ abstract class RenewalTask implements TimerTask {
     abstract CompletionStage<Void> renew(Iterator<String> iter, int chunkSize);
 
     void cancelExpirationRenewal(String name, Long threadId) {
-        LockEntry task = name2entry.get(name);
-        if (task == null) {
-            return;
-        }
-
-        if (threadId != null) {
-            task.removeThreadId(threadId);
-        }
-
-        if (threadId == null || task.hasNoThreads()) {
-            name2entry.remove(name);
-
-            if (executor.getServiceManager().isClusterSetup()) {
-                int slot = executor.getConnectionManager().calcSlot(name);
-                slot2names.computeIfPresent(slot, (k, v) -> {
-                    v.remove(name);
-                    if (v.isEmpty()) {
-                        return null;
-                    }
-                    return v;
-                });
+        LockEntry newTask = name2entry.compute(name, (unused, task) -> {
+            if (task == null) {
+                return null;
             }
 
+            if (threadId != null) {
+                task.removeThreadId(threadId);
+            }
+
+            if (threadId == null || task.hasNoThreads()) {
+                if (executor.getServiceManager().isClusterSetup()) {
+                    int slot = executor.getConnectionManager().calcSlot(name);
+                    slot2names.computeIfPresent(slot, (k, v) -> {
+                        v.remove(name);
+                        if (v.isEmpty()) {
+                            return null;
+                        }
+                        return v;
+                    });
+                }
+                return null;
+            }
+            return task;
+        });
+
+        if (newTask == null) {
             if (!name2entry.isEmpty()) {
                 return;
             }
@@ -131,16 +134,21 @@ abstract class RenewalTask implements TimerTask {
     }
 
     final void add(String rawName, String lockName, long threadId, LockEntry entry) {
-        addSlotName(rawName);
+        name2entry.compute(rawName, (k, oldEntry) -> {
+            addSlotName(rawName);
 
-        LockEntry oldEntry = name2entry.putIfAbsent(rawName, entry);
-        if (oldEntry != null) {
-            oldEntry.addThreadId(threadId, lockName);
-        } else {
-            if (tryRun()) {
-                schedule();
+            LockEntry returnEntry = entry;
+            if (oldEntry != null) {
+                oldEntry.addThreadId(threadId, lockName);
+                returnEntry = oldEntry;
+            } else {
+                if (tryRun()) {
+                    schedule();
+                }
             }
-        }
+            return returnEntry;
+        });
+
     }
 
     void addSlotName(String rawName) {
