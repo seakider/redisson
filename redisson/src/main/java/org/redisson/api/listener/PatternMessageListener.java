@@ -18,7 +18,7 @@ package org.redisson.api.listener;
 import java.util.EventListener;
 
 /**
- * Listener for Redis messages published via RTopic Redisson object
+ * Listener for Valkey or Redis messages published via RTopic Redisson object
  *
  * @author Nikita Koksharov
  *

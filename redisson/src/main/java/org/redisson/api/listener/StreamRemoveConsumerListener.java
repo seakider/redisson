@@ -19,7 +19,7 @@ import org.redisson.api.ObjectListener;
 
 /**
  * Redisson Object Event listener for <b>xgroup-delconsumer</b> event
- * published by Redis when a Stream Consumer is removed.
+ * published by Valkey or Redis when a Stream Consumer is removed.
  * <p>
  * Redis notify-keyspace-events setting should contain Et letters
  *

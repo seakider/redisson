@@ -19,7 +19,7 @@ import org.redisson.api.ObjectListener;
 
 /**
  * Redisson Object Event listener for <b>xadd</b> event
- * published by Redis when an element added into Stream.
+ * published by Valkey or Redis when an element added into Stream.
  * <p>
  * Redis notify-keyspace-events setting should contain Et letters
  *

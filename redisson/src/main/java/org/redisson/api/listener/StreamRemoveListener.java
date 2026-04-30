@@ -19,7 +19,7 @@ import org.redisson.api.ObjectListener;
 
 /**
  * Redisson Object Event listener for <b>srem</b> event
- * published by Redis when an element removed from Stream.
+ * published by Valkey or Redis when an element removed from Stream.
  * <p>
  * Redis notify-keyspace-events setting should contain Et letters
  *

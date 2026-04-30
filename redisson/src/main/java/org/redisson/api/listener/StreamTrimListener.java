@@ -19,7 +19,7 @@ import org.redisson.api.ObjectListener;
 
 /**
  * Redisson Object Event listener for <b>ltrim</b> event
- * published by Redis when trim operation is executed for Stream.
+ * published by Valkey or Redis when trim operation is executed for Stream.
  * <p>
  * Redis notify-keyspace-events setting should contain Et letters
  *

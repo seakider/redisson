@@ -18,7 +18,7 @@ package org.redisson.api.listener;
 import org.redisson.api.ObjectListener;
 
 /**
- * Redisson Object Event listener for local cache invalidation event published by Redis.
+ * Redisson Object Event listener for local cache invalidation event published by Valkey or Redis.
  *
  * @author Nikita Koksharov
  *

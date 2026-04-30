@@ -18,7 +18,7 @@ package org.redisson.api.listener;
 import org.redisson.api.ObjectListener;
 
 /**
- * Redisson Object Event listener for <b>add</b> event published by RScoredSortedSet object.
+ * Redisson Object Event listener for <b>zadd</b> event published by Valkey or Redis.
  * <p>
  * Redis notify-keyspace-events setting should contain Ez letters
  * 

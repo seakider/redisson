@@ -18,9 +18,9 @@ package org.redisson.api.listener;
 import org.redisson.api.ObjectListener;
 
 /**
- * Redisson Object Event listener for <b>client tracking</b> event published by Redis.
+ * Redisson Object Event listener for <b>client tracking</b> event published by Valkey or Redis.
  * <p>
- * Requires Redis 6.0+
+ * Requires Redis 6.0+ or Valkey any version
  *
  * @author Nikita Koksharov
  *

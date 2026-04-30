@@ -20,7 +20,7 @@ import org.redisson.api.ObjectListener;
 import java.net.InetSocketAddress;
 
 /**
- * Redisson Object Event listener for <b>flush</b> event published by Redis.
+ * Redisson Object Event listener for <b>flush</b> event published by Valkey or Redis.
  * <p>
  * Requires Redis 6.0+
  *

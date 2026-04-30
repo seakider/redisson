@@ -18,7 +18,7 @@ package org.redisson.api.listener;
 import java.util.EventListener;
 
 /**
- * Listener for Redis PubSub channel status changes
+ * Listener for Valkey or Redis PubSub channel status changes
  *
  * @author Nikita Koksharov
  *

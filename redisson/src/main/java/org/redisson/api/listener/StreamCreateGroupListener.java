@@ -19,7 +19,7 @@ import org.redisson.api.ObjectListener;
 
 /**
  * Redisson Object Event listener for <b>xgroup-create</b> event
- * published by Redis when a Stream Group is created.
+ * published by Valkey or Redis when a Stream Group is created.
  * <p>
  * Redis notify-keyspace-events setting should contain Et letters
  *
