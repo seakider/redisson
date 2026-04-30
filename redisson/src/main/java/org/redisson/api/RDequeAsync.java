@@ -221,13 +221,13 @@ public interface RDequeAsync<V> extends RQueueAsync<V> {
      * Adds object event listener
      *
      * @see org.redisson.api.listener.TrackingListener
-     * @see org.redisson.api.ExpiredObjectListener
-     * @see org.redisson.api.DeletedObjectListener
      * @see org.redisson.api.listener.ListAddListener
-     * @see org.redisson.api.listener.ListInsertListener
-     * @see org.redisson.api.listener.ListSetListener
      * @see org.redisson.api.listener.ListRemoveListener
      * @see org.redisson.api.listener.ListTrimListener
+     * @see org.redisson.api.listener.ListSetListener
+     * @see org.redisson.api.listener.ListInsertListener
+     * @see org.redisson.api.ExpiredObjectListener
+     * @see org.redisson.api.DeletedObjectListener
      * @see org.redisson.api.listener.DequeAddFirstListener
      *
      * @param listener - object event listener

@@ -27,10 +27,8 @@ import org.redisson.client.protocol.RedisCommand;
 import org.redisson.client.protocol.RedisCommands;
 import org.redisson.client.protocol.decoder.ListFirstObjectDecoder;
 import org.redisson.command.CommandAsyncExecutor;
-import org.redisson.misc.CompletableFutureWrapper;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Distributed and concurrent implementation of {@link java.util.Queue}
