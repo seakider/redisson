@@ -3,15 +3,20 @@ package org.redisson;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.PriorityQueue;
-import java.util.Queue;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import mockit.Invocation;
+import mockit.Mock;
+import mockit.MockUp;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.redisson.api.RFuture;
 import org.redisson.api.RPriorityQueue;
+import org.redisson.client.codec.Codec;
+import org.redisson.client.protocol.RedisCommand;
+import org.redisson.command.CommandAsyncService;
+import org.redisson.connection.NodeSource;
 
 public class RedissonPriorityQueueTest extends RedisDockerTest {
 
@@ -285,6 +290,35 @@ public class RedissonPriorityQueueTest extends RedisDockerTest {
         set.add(5);
 
         Assertions.assertEquals(7, set.size());
+    }
+
+    @Test
+    public void testWriteMethodReadMaster() {
+        withNewCluster((nodes, redisson) -> {
+            AtomicInteger readReplicaCount = new AtomicInteger();
+            new MockUp<CommandAsyncService>() {
+                @Mock
+                public <V, R> RFuture<R> async(Invocation inv, boolean readOnlyMode, NodeSource source, Codec codec,
+                                               RedisCommand<V> command, Object[] params, boolean ignoreRedirect, boolean noRetry) {
+                    Set<String> listOperations = Set.of("LINDEX", "LLEN");
+                    if (readOnlyMode && listOperations.contains(command.getName())) {
+                        readReplicaCount.incrementAndGet();
+                    }
+                    return inv.proceed(readOnlyMode, source, codec, command, params, ignoreRedirect, noRetry);
+                }
+            };
+
+            RPriorityQueue<Integer> set = redisson.getPriorityQueue("set");
+            set.add(1);
+            set.add(2);
+            set.add(3);
+            set.add(3);
+            set.add(4);
+            set.add(5);
+            set.add(5);
+
+            assertThat(readReplicaCount.get()).isEqualTo(0);
+        });
     }
 
 

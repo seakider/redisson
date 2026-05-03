@@ -6,10 +6,7 @@ import com.github.dockerjava.api.model.ExposedPort;
 import com.github.dockerjava.api.model.Ports;
 import org.junit.jupiter.api.BeforeEach;
 import org.redisson.api.RedissonClient;
-import org.redisson.config.Config;
-import org.redisson.config.NatMapper;
-import org.redisson.config.Protocol;
-import org.redisson.config.SentinelServersConfig;
+import org.redisson.config.*;
 import org.redisson.misc.RedisURI;
 import org.slf4j.LoggerFactory;
 import org.testcontainers.containers.*;
@@ -493,7 +490,8 @@ public class RedisDockerTest {
                     }
                 })
                 .addNodeAddress("redis://127.0.0.1:" + masterPort[0].getHostPortSpec())
-                .addNodeAddress("redis://127.0.0.1:" + replicaPort[0].getHostPortSpec());
+                .addNodeAddress("redis://127.0.0.1:" + replicaPort[0].getHostPortSpec())
+                .setReadMode(ReadMode.MASTER_SLAVE);
 
         RedissonClient redisson = Redisson.create(config);
         return new ReplicatedData(environment, redisson, nodes);
