@@ -28,7 +28,7 @@ import java.util.Map;
  * @author Nikita Koksharov
  *
  */
-public final class QueryOptions {
+public class QueryOptions {
 
     private boolean noContent;
     private boolean verbatim;
@@ -56,7 +56,7 @@ public final class QueryOptions {
     private List<String> inFields = Collections.emptyList();
     private List<ReturnAttribute> returnAttributes = Collections.emptyList();
 
-    private QueryOptions() {
+    protected QueryOptions() {
     }
 
     public static QueryOptions defaults() {

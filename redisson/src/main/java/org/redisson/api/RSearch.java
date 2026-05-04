@@ -23,6 +23,10 @@ import org.redisson.api.search.aggregate.IterableAggregationOptions;
 import org.redisson.api.search.index.IndexInfo;
 import org.redisson.api.search.index.IndexOptions;
 import org.redisson.api.search.index.FieldIndex;
+import org.redisson.api.search.profile.AggregateProfileResult;
+import org.redisson.api.search.profile.ProfileAggregationOptions;
+import org.redisson.api.search.profile.ProfileQueryOptions;
+import org.redisson.api.search.profile.SearchProfileResult;
 import org.redisson.api.search.query.hybrid.HybridSearchResult;
 import org.redisson.api.search.query.QueryOptions;
 import org.redisson.api.search.query.SearchResult;
@@ -126,6 +130,36 @@ public interface RSearch extends RSearchAsync {
      * @return iterable aggregation result
      */
     Iterable<AggregationEntry> aggregate(String indexName, String query, IterableAggregationOptions options);
+
+    /**
+     * Executes a search query against the defined index and collects performance
+     * information using the {@code FT.PROFILE} command.
+     * <p>
+     * The returned {@link SearchProfileResult} wraps the {@link SearchResult}
+     * produced by the underlying {@code FT.SEARCH} call together with the
+     * profile information returned by the server.
+     *
+     * @param indexName index name
+     * @param query query value
+     * @param options profile query options (extends {@link QueryOptions})
+     * @return search profile result
+     */
+    SearchProfileResult profileSearch(String indexName, String query, ProfileQueryOptions options);
+
+    /**
+     * Executes an aggregation against the defined index and collects performance
+     * information using the {@code FT.PROFILE} command.
+     * <p>
+     * The returned {@link AggregateProfileResult} wraps the {@link AggregationResult}
+     * produced by the underlying {@code FT.AGGREGATE} call together with the
+     * profile information returned by the server.
+     *
+     * @param indexName index name
+     * @param query query value
+     * @param options profile aggregation options (extends {@link AggregationOptions})
+     * @return aggregation profile result
+     */
+    AggregateProfileResult profileAggregate(String indexName, String query, ProfileAggregationOptions options);
 
     /**
      * Adds alias to defined index name

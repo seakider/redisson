@@ -22,9 +22,9 @@ import java.time.Duration;
  * @author Nikita Koksharov
  *
  */
-public final class AggregationOptions extends AggregationBaseOptions<AggregationOptions> {
+public class AggregationOptions extends AggregationBaseOptions<AggregationOptions> {
 
-    private AggregationOptions() {
+    protected AggregationOptions() {
     }
 
     public static AggregationOptions defaults() {

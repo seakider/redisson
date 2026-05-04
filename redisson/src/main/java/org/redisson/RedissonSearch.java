@@ -20,6 +20,10 @@ import org.redisson.api.RSearch;
 import org.redisson.api.search.SpellcheckOptions;
 import org.redisson.api.search.aggregate.*;
 import org.redisson.api.search.index.*;
+import org.redisson.api.search.profile.AggregateProfileResult;
+import org.redisson.api.search.profile.ProfileAggregationOptions;
+import org.redisson.api.search.profile.ProfileQueryOptions;
+import org.redisson.api.search.profile.SearchProfileResult;
 import org.redisson.api.search.query.*;
 import org.redisson.api.search.query.hybrid.*;
 import org.redisson.client.RedisClient;
@@ -423,9 +427,29 @@ public class RedissonSearch implements RSearch {
         return commandExecutor.get(searchAsync(indexName, query, options));
     }
 
-    @SuppressWarnings("MethodLength")
     @Override
     public RFuture<SearchResult> searchAsync(String indexName, String query, QueryOptions options) {
+        List<Object> args = createSearchArgs(indexName, query, options);
+
+        RedisStrictCommand<SearchResult> command;
+        if (commandExecutor.getServiceManager().isResp3()) {
+            command = new RedisStrictCommand<SearchResult>("FT.SEARCH",
+                    new ListMultiDecoder2(new SearchResultDecoderV2(),
+                            new ObjectListReplayDecoder(),
+                            new ObjectMapReplayDecoder(),
+                            new ObjectMapReplayDecoder(new CompositeCodec(StringCodec.INSTANCE, codec))));
+        } else {
+            command = new RedisStrictCommand<>("FT.SEARCH",
+                    new ListMultiDecoder2(new SearchResultDecoder(),
+                                            new ObjectMapReplayDecoder(new CompositeCodec(StringCodec.INSTANCE, codec)),
+                                            new ObjectListReplayDecoder()));
+        }
+
+        return commandExecutor.readAsync(indexName, StringCodec.INSTANCE, command, args.toArray());
+    }
+
+    @SuppressWarnings("MethodLength")
+    private List<Object> createSearchArgs(String indexName, String query, QueryOptions options) {
         List<Object> args = new ArrayList<>();
         args.add(indexName);
         args.add(query);
@@ -582,22 +606,7 @@ public class RedissonSearch implements RSearch {
             args.add("DIALECT");
             args.add(options.getDialect());
         }
-
-        RedisStrictCommand<SearchResult> command;
-        if (commandExecutor.getServiceManager().isResp3()) {
-            command = new RedisStrictCommand<SearchResult>("FT.SEARCH",
-                    new ListMultiDecoder2(new SearchResultDecoderV2(),
-                            new ObjectListReplayDecoder(),
-                            new ObjectMapReplayDecoder(),
-                            new ObjectMapReplayDecoder(new CompositeCodec(StringCodec.INSTANCE, codec))));
-        } else {
-            command = new RedisStrictCommand<>("FT.SEARCH",
-                    new ListMultiDecoder2(new SearchResultDecoder(),
-                                            new ObjectMapReplayDecoder(new CompositeCodec(StringCodec.INSTANCE, codec)),
-                                            new ObjectListReplayDecoder()));
-        }
-
-        return commandExecutor.readAsync(indexName, StringCodec.INSTANCE, command, args.toArray());
+        return args;
     }
 
     private String value(double score, boolean exclusive) {
@@ -816,6 +825,54 @@ public class RedissonSearch implements RSearch {
         }
 
         return commandExecutor.writeAsync(indexName, StringCodec.INSTANCE, command, args.toArray());
+    }
+
+    @Override
+    public SearchProfileResult profileSearch(String indexName, String query, ProfileQueryOptions options) {
+        return commandExecutor.get(profileSearchAsync(indexName, query, options));
+    }
+
+    @Override
+    public RFuture<SearchProfileResult> profileSearchAsync(String indexName, String query, ProfileQueryOptions options) {
+        List<Object> searchArgs = createSearchArgs(indexName, query, options);
+        List<Object> args = buildProfileArgs(indexName, "SEARCH", options.isLimited(), searchArgs);
+
+        RedisStrictCommand<SearchProfileResult> command = new RedisStrictCommand<>("FT.PROFILE",
+                new UnboundedListMultiDecoder(new SearchProfileResultDecoder()));
+
+        return commandExecutor.readAsync(indexName, StringCodec.INSTANCE, command, args.toArray());
+    }
+
+    @Override
+    public AggregateProfileResult profileAggregate(String indexName, String query, ProfileAggregationOptions options) {
+        return commandExecutor.get(profileAggregateAsync(indexName, query, options));
+    }
+
+    @Override
+    public RFuture<AggregateProfileResult> profileAggregateAsync(String indexName, String query, ProfileAggregationOptions options) {
+        List<Object> aggregateArgs = createAggregateArgs(indexName, query, options);
+        List<Object> args = buildProfileArgs(indexName, "AGGREGATE", options.isLimited(), aggregateArgs);
+
+        RedisStrictCommand<AggregateProfileResult> command = new RedisStrictCommand<>("FT.PROFILE",
+                new UnboundedListMultiDecoder(new AggregateProfileResultDecoder()));
+
+        return commandExecutor.readAsync(indexName, StringCodec.INSTANCE, command, args.toArray());
+    }
+
+    private static List<Object> buildProfileArgs(String indexName, String queryType, boolean limited, List<Object> innerArgs) {
+        List<Object> args = new ArrayList<>(innerArgs.size() + 4);
+        args.add(indexName);
+        args.add(queryType);
+        if (limited) {
+            args.add("LIMITED");
+        }
+        args.add("QUERY");
+        // innerArgs is built as [indexName, query, ...other args]; skip the
+        // duplicated indexName (FT.PROFILE expects the index only once).
+        for (int i = 1; i < innerArgs.size(); i++) {
+            args.add(innerArgs.get(i));
+        }
+        return args;
     }
 
     @Override

@@ -10,6 +10,10 @@ import org.redisson.api.*;
 import org.redisson.api.search.SpellcheckOptions;
 import org.redisson.api.search.aggregate.*;
 import org.redisson.api.search.index.*;
+import org.redisson.api.search.profile.AggregateProfileResult;
+import org.redisson.api.search.profile.ProfileAggregationOptions;
+import org.redisson.api.search.profile.ProfileQueryOptions;
+import org.redisson.api.search.profile.SearchProfileResult;
 import org.redisson.api.search.query.*;
 import org.redisson.api.search.query.hybrid.Combine;
 import org.redisson.api.search.query.hybrid.HybridQueryArgs;
@@ -19,6 +23,7 @@ import org.redisson.client.codec.StringCodec;
 import org.redisson.codec.CompositeCodec;
 import org.redisson.codec.JacksonCodec;
 import org.redisson.config.Config;
+import org.redisson.config.Protocol;
 import org.testcontainers.containers.GenericContainer;
 
 import java.nio.ByteBuffer;
@@ -118,6 +123,85 @@ public class RedissonSearchTest extends RedisDockerTest {
                 FieldIndex.text("t2"));
         
         s.search("idx:1", "*", QueryOptions.defaults().noContent(true));
+    }
+
+    @Test
+    public void testProfileSearch() {
+        RMap<String, String> m1 = redisson.getMap("doc:1", StringCodec.INSTANCE);
+        m1.put("t1", "hello");
+        m1.put("t2", "world");
+
+        RMap<String, String> m2 = redisson.getMap("doc:2", StringCodec.INSTANCE);
+        m2.put("t1", "goodbye");
+        m2.put("t2", "world");
+
+        RSearch s = redisson.getSearch(StringCodec.INSTANCE);
+        s.createIndex("idx:profile-search", IndexOptions.defaults()
+                        .on(IndexType.HASH)
+                        .prefix(Arrays.asList("doc:")),
+                FieldIndex.text("t1"),
+                FieldIndex.text("t2"));
+
+        Awaitility.await().atMost(Durations.FIVE_SECONDS).untilAsserted(() -> {
+            assertThat(s.info("idx:profile-search").getIndexing()).isEqualTo(0);
+        });
+
+        SearchProfileResult result = s.profileSearch("idx:profile-search", "hello",
+                ProfileQueryOptions.defaults());
+
+        assertThat(result).isNotNull();
+        assertThat(result.getResult()).isNotNull();
+        assertThat(result.getResult().getTotal()).isEqualTo(1);
+        assertThat(result.getResult().getDocuments()).hasSize(1);
+        assertThat(result.getResult().getDocuments().get(0).getId()).isEqualTo("doc:1");
+        assertThat(result.getInfo()).isNotEmpty();
+
+        SearchProfileResult limitedResult = s.profileSearch("idx:profile-search", "world",
+                ProfileQueryOptions.defaults().limited());
+
+        assertThat(limitedResult).isNotNull();
+        assertThat(limitedResult.getResult().getTotal()).isEqualTo(2);
+        assertThat(limitedResult.getInfo()).isNotEmpty();
+    }
+
+    @Test
+    public void testProfileAggregate() {
+        for (int i = 0; i < 6; i++) {
+            RMap<String, String> m = redisson.getMap("doc:" + i, StringCodec.INSTANCE);
+            m.put("org",   "org_" + (i % 3));
+            m.put("value", String.valueOf(i));
+        }
+
+        RSearch s = redisson.getSearch(StringCodec.INSTANCE);
+        s.createIndex("idx:profile-aggregate", IndexOptions.defaults()
+                        .on(IndexType.HASH)
+                        .prefix(Arrays.asList("doc:")),
+                FieldIndex.tag("org"),
+                FieldIndex.numeric("value"));
+
+        Awaitility.await().atMost(Durations.FIVE_SECONDS).untilAsserted(() -> {
+            assertThat(s.info("idx:profile-aggregate").getIndexing()).isEqualTo(0);
+        });
+
+        AggregateProfileResult result = s.profileAggregate("idx:profile-aggregate", "*",
+                ProfileAggregationOptions.defaults()
+                        .groupBy(GroupBy.fieldNames("@org")
+                                        .reducers(Reducer.count().as("cnt"))));
+
+        assertThat(result).isNotNull();
+        assertThat(result.getResult()).isNotNull();
+        assertThat(result.getResult().getAttributes()).hasSize(3);
+        assertThat(result.getInfo()).isNotEmpty();
+
+        AggregateProfileResult limitedResult = s.profileAggregate("idx:profile-aggregate", "*",
+                ProfileAggregationOptions.defaults()
+                        .groupBy(GroupBy.fieldNames("@org")
+                                        .reducers(Reducer.count().as("cnt")))
+                        .limited());
+
+        assertThat(limitedResult).isNotNull();
+        assertThat(limitedResult.getResult().getAttributes()).hasSize(3);
+        assertThat(limitedResult.getInfo()).isNotEmpty();
     }
 
     @Test

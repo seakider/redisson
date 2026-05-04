@@ -26,6 +26,10 @@ import org.redisson.api.search.aggregate.IterableAggregationOptions;
 import org.redisson.api.search.index.FieldIndex;
 import org.redisson.api.search.index.IndexInfo;
 import org.redisson.api.search.index.IndexOptions;
+import org.redisson.api.search.profile.AggregateProfileResult;
+import org.redisson.api.search.profile.ProfileAggregationOptions;
+import org.redisson.api.search.profile.ProfileQueryOptions;
+import org.redisson.api.search.profile.SearchProfileResult;
 import org.redisson.api.search.query.QueryOptions;
 import org.redisson.api.search.query.SearchResult;
 import org.redisson.api.search.query.hybrid.HybridQueryArgs;
@@ -119,6 +123,28 @@ public interface RSearchRx {
      * @return iterable aggregation result
      */
     Single<AggregationEntry> aggregate(String indexName, String query, IterableAggregationOptions options);
+
+    /**
+     * Executes a search query against the defined index and collects performance
+     * information using the {@code FT.PROFILE} command.
+     *
+     * @param indexName index name
+     * @param query query value
+     * @param options profile query options (extends {@link QueryOptions})
+     * @return search profile result
+     */
+    Single<SearchProfileResult> profileSearch(String indexName, String query, ProfileQueryOptions options);
+
+    /**
+     * Executes an aggregation against the defined index and collects performance
+     * information using the {@code FT.PROFILE} command.
+     *
+     * @param indexName index name
+     * @param query query value
+     * @param options profile aggregation options (extends {@link AggregationOptions})
+     * @return aggregation profile result
+     */
+    Single<AggregateProfileResult> profileAggregate(String indexName, String query, ProfileAggregationOptions options);
 
     /**
      * Adds alias to defined index name
