@@ -996,10 +996,20 @@ public class RedissonSearch implements RSearch {
 
     @Override
     public RFuture<AggregationResult> readCursorAsync(String indexName, long cursorId, int count) {
-        RedisStrictCommand command = new RedisStrictCommand<>("FT.CURSOR", "READ",
-                new ListMultiDecoder2(new AggregationCursorResultDecoder(),
-                        new ObjectListReplayDecoder(),
-                        new ObjectMapReplayDecoder(new CompositeCodec(StringCodec.INSTANCE, codec))));
+        RedisStrictCommand command;
+        if (commandExecutor.getServiceManager().isResp3()) {
+            command = new RedisStrictCommand<>("FT.CURSOR", "READ",
+                    new ListMultiDecoder2(new AggregationCursorResultDecoderV2(),
+                            new ObjectListReplayDecoder(),
+                            new ObjectListReplayDecoder(),
+                            new ObjectMapReplayDecoder(),
+                            new ObjectMapReplayDecoder(new CompositeCodec(StringCodec.INSTANCE, codec))));
+        } else {
+            command = new RedisStrictCommand<>("FT.CURSOR", "READ",
+                    new ListMultiDecoder2(new AggregationCursorResultDecoder(),
+                            new ObjectListReplayDecoder(),
+                            new ObjectMapReplayDecoder(new CompositeCodec(StringCodec.INSTANCE, codec))));
+        }
 
         return commandExecutor.writeAsync(indexName, StringCodec.INSTANCE, command, indexName, cursorId, "COUNT", count);
     }

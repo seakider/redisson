@@ -30,6 +30,19 @@ public class AggregationCursorResultScanDecoderV2 implements MultiDecoder<ListSc
     @Override
     public ListScanResult<AggregationEntry> decode(List<Object> parts, State state) {
         List<Object> attrs = (List<Object>) parts.get(0);
+        String cursorId = String.valueOf(parts.get(1));
+
+        // FT.AGGREGATE WITHCURSOR returns the legacy RESP2-flat shape ([count, doc1, doc2, ...])
+        // unless the FORMAT argument is used, even on a RESP3 connection.
+        if (!attrs.isEmpty() && attrs.get(0) instanceof Long) {
+            long total = (Long) attrs.get(0);
+            List<AggregationEntry> docs = new ArrayList<>(Math.max(0, attrs.size() - 1));
+            for (int i = 1; i < attrs.size(); i++) {
+                docs.add(new AggregationEntry(total, (Map<String, Object>) attrs.get(i)));
+            }
+            return new ListScanResult<>(cursorId, docs);
+        }
+
         Map<String, Object> m = new HashMap<>();
         for (int i = 0; i < attrs.size(); i++) {
             if (i % 2 != 0) {
@@ -45,6 +58,6 @@ public class AggregationCursorResultScanDecoderV2 implements MultiDecoder<ListSc
             docs.add(new AggregationEntry(total, map));
         }
 
-        return new ListScanResult<>((String) parts.get(1), docs);
+        return new ListScanResult<>(cursorId, docs);
     }
 }

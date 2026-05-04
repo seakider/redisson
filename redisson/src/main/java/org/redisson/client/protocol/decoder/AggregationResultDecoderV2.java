@@ -36,6 +36,19 @@ public class AggregationResultDecoderV2 implements MultiDecoder<Object> {
             return null;            
         }
 
+        // FT.AGGREGATE returns the legacy RESP2-flat shape ([count, doc1, doc2, ...])
+        // unless the FORMAT argument is used, even on a RESP3 connection.
+        if (parts.get(0) instanceof Long) {
+            long total = (Long) parts.get(0);
+            List<Map<String, Object>> docs = new ArrayList<>();
+            if (total > 0) {
+                for (int i = 1; i < parts.size(); i++) {
+                    docs.add((Map<String, Object>) parts.get(i));
+                }
+            }
+            return new AggregationResult(total, docs);
+        }
+
         Map<String, Object> m = new HashMap<>();
         for (int i = 0; i < parts.size(); i++) {
             if (i % 2 != 0) {

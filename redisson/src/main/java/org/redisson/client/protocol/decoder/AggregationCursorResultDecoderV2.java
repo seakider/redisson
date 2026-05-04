@@ -34,6 +34,19 @@ public class AggregationCursorResultDecoderV2 implements MultiDecoder<Object> {
         }
 
         List<Object> attrs = (List<Object>) parts.get(0);
+        long cursorId = (long) parts.get(1);
+
+        // FT.AGGREGATE WITHCURSOR returns the legacy RESP2-flat shape ([count, doc1, doc2, ...])
+        // unless the FORMAT argument is used, even on a RESP3 connection.
+        if (!attrs.isEmpty() && attrs.get(0) instanceof Long) {
+            long total = (Long) attrs.get(0);
+            List<Map<String, Object>> docs = new ArrayList<>();
+            for (int i = 1; i < attrs.size(); i++) {
+                docs.add((Map<String, Object>) attrs.get(i));
+            }
+            return new AggregationResult(total, docs, cursorId);
+        }
+
         Map<String, Object> m = new HashMap<>();
         for (int i = 0; i < attrs.size(); i++) {
             if (i % 2 != 0) {
@@ -48,7 +61,6 @@ public class AggregationCursorResultDecoderV2 implements MultiDecoder<Object> {
             docs.add(map);
         }
         Long total = (Long) m.get("total_results");
-        long cursorId = (long) parts.get(1);
         return new AggregationResult(total, docs, cursorId);
     }
 
