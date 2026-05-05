@@ -30,6 +30,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -47,8 +48,8 @@ public class CommandReactiveBatchService extends CommandReactiveService implemen
     }
 
     @Override
-    public <R> Mono<R> reactive(Callable<RFuture<R>> supplier) {
-        Mono<R> mono = super.reactive(new Callable<RFuture<R>>() {
+    public <R> Mono<R> reactive(Callable<CompletionStage<R>> supplier) {
+        Mono<R> mono = super.reactive(new Callable<CompletionStage<R>>() {
             final CompletableFuture<R> future = new CompletableFuture<>();
             final AtomicBoolean lock = new AtomicBoolean();
             @Override

@@ -1032,7 +1032,8 @@ public class RedissonTopicTest extends RedisDockerTest {
         }, 2);
     }
 
-//    @Test
+/*
+    @Test
     public void testReattachInSentinel2() throws Exception {
         RedisRunner.RedisProcess master = new RedisRunner()
                 .nosave()
@@ -1178,6 +1179,7 @@ public class RedissonTopicTest extends RedisDockerTest {
         slave1.stop();
         slave2.stop();
     }
+*/
 
     protected Thread sendCommands(RedissonClient redisson, String topicName) {
         Thread t = new Thread() {

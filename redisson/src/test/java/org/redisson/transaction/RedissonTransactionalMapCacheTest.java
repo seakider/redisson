@@ -1,12 +1,10 @@
 package org.redisson.transaction;
 
 import org.junit.jupiter.api.Test;
-import org.redisson.RedisRunner;
 import org.redisson.Redisson;
 import org.redisson.api.*;
 import org.redisson.config.Config;
 
-import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;

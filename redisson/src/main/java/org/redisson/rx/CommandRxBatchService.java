@@ -31,6 +31,7 @@ import org.redisson.misc.CompletableFutureWrapper;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -48,8 +49,8 @@ public class CommandRxBatchService extends CommandRxService implements BatchServ
     }
     
     @Override
-    public <R> Flowable<R> flowable(Callable<RFuture<R>> supplier) {
-        Flowable<R> flowable = super.flowable(new Callable<RFuture<R>>() {
+    public <R> Flowable<R> flowable(Callable<CompletionStage<R>> supplier) {
+        Flowable<R> flowable = super.flowable(new Callable<CompletionStage<R>>() {
             final CompletableFuture<R> future = new CompletableFuture<>();
             final AtomicBoolean lock = new AtomicBoolean();
             @Override

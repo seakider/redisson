@@ -15,7 +15,6 @@
  */
 package org.redisson.reactive;
 
-import org.redisson.api.RFuture;
 import org.redisson.api.options.ObjectParams;
 import org.redisson.command.CommandAsyncExecutor;
 import org.redisson.command.CommandAsyncService;
@@ -26,6 +25,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 
 /**
  *
@@ -57,10 +57,10 @@ public class CommandReactiveService extends CommandAsyncService implements Comma
     }
 
     @Override
-    public <R> Mono<R> reactive(Callable<RFuture<R>> supplier) {
+    public <R> Mono<R> reactive(Callable<CompletionStage<R>> supplier) {
         return Flux.<R>create(emitter -> {
             emitter.onRequest(n -> {
-                RFuture<R> future;
+                CompletionStage<R> future;
                 try {
                     future = supplier.call();
                 } catch (Exception e) {
@@ -69,7 +69,7 @@ public class CommandReactiveService extends CommandAsyncService implements Comma
                 }
                 
                 emitter.onDispose(() -> {
-                    future.cancel(true);
+                    future.toCompletableFuture().cancel(true);
                 });
 
                 future.whenComplete((v, e) -> {

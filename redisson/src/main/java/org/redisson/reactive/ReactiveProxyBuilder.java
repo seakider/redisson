@@ -19,6 +19,9 @@ import org.redisson.misc.ProxyBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
+
 /**
  * 
  * @author Nikita Koksharov
@@ -32,7 +35,7 @@ public class ReactiveProxyBuilder {
 
     public static <T> T create(CommandReactiveExecutor commandExecutor, Object instance, Object implementation, Class<T> clazz) {
         return ProxyBuilder.create((callable, instanceMethod) -> {
-            Mono<Object> result = commandExecutor.reactive(callable);
+            Mono<Object> result = commandExecutor.reactive((Callable<CompletionStage<Object>>) (Object) callable);
             if (instanceMethod.getReturnType().isAssignableFrom(Flux.class)) {
                 Mono<Iterable> monoListResult = result.cast(Iterable.class);
                 return monoListResult.flatMapMany(Flux::fromIterable);

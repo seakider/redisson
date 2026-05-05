@@ -16,13 +16,13 @@
 package org.redisson.rx;
 
 import io.reactivex.rxjava3.core.Flowable;
-import org.redisson.api.RFuture;
 import org.redisson.api.options.ObjectParams;
 import org.redisson.command.CommandAsyncExecutor;
 import org.redisson.connection.ConnectionManager;
 import org.redisson.liveobject.core.RedissonObjectBuilder;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.CompletionStage;
 
 /**
  *
@@ -31,7 +31,7 @@ import java.util.concurrent.Callable;
  */
 public interface CommandRxExecutor extends CommandAsyncExecutor {
 
-    <R> Flowable<R> flowable(Callable<RFuture<R>> supplier);
+    <R> Flowable<R> flowable(Callable<CompletionStage<R>> supplier);
 
     @Override
     CommandRxExecutor copy(ObjectParams objectParams);

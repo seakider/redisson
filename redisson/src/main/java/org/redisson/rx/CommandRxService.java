@@ -17,7 +17,6 @@ package org.redisson.rx;
 
 import io.reactivex.rxjava3.core.Flowable;
 import io.reactivex.rxjava3.processors.ReplayProcessor;
-import org.redisson.api.RFuture;
 import org.redisson.api.options.ObjectParams;
 import org.redisson.command.CommandAsyncExecutor;
 import org.redisson.command.CommandAsyncService;
@@ -26,6 +25,7 @@ import org.redisson.liveobject.core.RedissonObjectBuilder;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.CompletionStage;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -58,11 +58,11 @@ public class CommandRxService extends CommandAsyncService implements CommandRxEx
     }
 
     @Override
-    public <R> Flowable<R> flowable(Callable<RFuture<R>> supplier) {
+    public <R> Flowable<R> flowable(Callable<CompletionStage<R>> supplier) {
         ReplayProcessor<R> p = ReplayProcessor.create();
-        AtomicReference<RFuture<R>> futureRef = new AtomicReference<>();
+        AtomicReference<CompletionStage<R>> futureRef = new AtomicReference<>();
         return p.doOnRequest(t -> {
-                    RFuture<R> future;
+                    CompletionStage<R> future;
                     try {
                         future = supplier.call();
                         futureRef.set(future);
@@ -86,9 +86,9 @@ public class CommandRxService extends CommandAsyncService implements CommandRxEx
                        p.onComplete();
                     });
                 }).doOnCancel(() -> {
-                    RFuture<R> future = futureRef.get();
+                    CompletionStage<R> future = futureRef.get();
                     if (future != null) {
-                        future.cancel(true);
+                        future.toCompletableFuture().cancel(true);
                     }
                 });
     }
