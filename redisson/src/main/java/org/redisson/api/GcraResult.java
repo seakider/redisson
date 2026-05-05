@@ -40,22 +40,47 @@ public final class GcraResult {
         this.fullBurstAfterSeconds = fullBurstAfterSeconds;
     }
 
+    /**
+     * Returns {@code true} if the requested tokens can't be acquired.
+     *
+     * @return {@code true} if rate limit has been exceeded
+     */
     public boolean isLimited() {
         return limited;
     }
 
+    /**
+     * Returns maximum token amount available for burst.
+     *
+     * @return maximum token amount
+     */
     public long getMaxTokens() {
         return maxTokens;
     }
 
+    /**
+     * Returns token amount currently available.
+     *
+     * @return available token amount
+     */
     public long getAvailableTokens() {
         return availableTokens;
     }
 
+    /**
+     * Returns number of seconds to wait before the requested tokens can be acquired.
+     *
+     * @return retry interval in seconds
+     */
     public long getRetryAfterSeconds() {
         return retryAfterSeconds;
     }
 
+    /**
+     * Returns number of seconds to wait before the full burst capacity is restored.
+     *
+     * @return full burst restore interval in seconds
+     */
     public long getFullBurstAfterSeconds() {
         return fullBurstAfterSeconds;
     }

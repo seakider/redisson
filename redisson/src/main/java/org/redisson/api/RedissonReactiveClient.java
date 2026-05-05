@@ -174,6 +174,8 @@ public interface RedissonReactiveClient {
 
     /**
      * Returns GCRA instance by <code>name</code>.
+     * <p>
+     * Requires Redis 8.8.0 or higher.
      *
      * @param name of GCRA object
      * @return GCRA object
@@ -182,6 +184,8 @@ public interface RedissonReactiveClient {
 
     /**
      * Returns GCRA instance with specified <code>options</code>.
+     * <p>
+     * Requires Redis 8.8.0 or higher.
      *
      * @param options instance options
      * @return GCRA object
