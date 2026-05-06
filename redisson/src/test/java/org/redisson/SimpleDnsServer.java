@@ -20,7 +20,7 @@ public class SimpleDnsServer {
     private final Channel channel;
     private String ip = "127.0.0.1";
     private final int port;
-    private final List<String> rotation;
+    private List<String> rotation;
     private final AtomicInteger rotationIndex = new AtomicInteger();
 
     public SimpleDnsServer() throws InterruptedException {
@@ -65,6 +65,10 @@ public class SimpleDnsServer {
 
     public void updateIP(String ip) {
         this.ip = ip;
+    }
+
+    public void updateRotation(List<String> rotation) {
+        this.rotation = rotation;
     }
 
     private class DnsMessageHandler extends SimpleChannelInboundHandler<DatagramDnsQuery> {
